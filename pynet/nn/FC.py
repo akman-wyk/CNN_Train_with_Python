@@ -31,10 +31,12 @@ class FC:
         self.weight_loc = weight_loc
         self.bias_value = bias_value
 
-    def __call__(self, inputs, w, b):
-        return self.forward(inputs, w, b)
+    def __call__(self, inputs, params, other):
+        return self.forward(inputs, params)
 
-    def forward(self, inputs, w, b):
+    def forward(self, inputs, params):
+        w, b = params
+
         # inputs.shape == [N, num_in]
         assert len(inputs.shape) == 2 and inputs.shape[1] == self.num_in
         assert w.shape == (self.num_in, self.num_out)
@@ -50,7 +52,7 @@ class FC:
         grad_b = np.sum(grad_out, axis=0, keepdims=True) / grad_out.shape[0]
 
         grad_in = grad_out.dot(w.T)
-        return grad_w, grad_b, grad_in
+        return grad_in, grad_w, grad_b
 
     def get_params(self):
         return np.random.normal(loc=self.weight_loc, scale=self.weight_scale, size=(self.num_in, self.num_out)), \

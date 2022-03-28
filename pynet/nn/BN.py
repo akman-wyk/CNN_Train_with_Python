@@ -14,10 +14,13 @@ class BN:
     批量归一化层
     """
 
-    def __call__(self, inputs, gamma, beta, bn_param):
-        return self.forward(inputs, gamma, beta, bn_param)
+    def __call__(self, inputs, params, other):
+        return self.forward(inputs, params, other)
 
-    def forward(self, inputs, gamma, beta, bn_param):
+    def forward(self, inputs, params, other):
+        gamma, beta = params
+        bn_param = other
+
         # inputs.shape == [N, C]
         assert len(inputs.shape) == 2
 

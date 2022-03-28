@@ -23,7 +23,7 @@ class MaxPool:
         self.filter_num = filter_num
         self.stride = stride
 
-    def __call__(self, inputs):
+    def __call__(self, inputs, params, other):
         return self.forward(inputs)
 
     def forward(self, inputs):

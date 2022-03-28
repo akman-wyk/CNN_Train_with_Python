@@ -13,6 +13,7 @@ import pynet.optim as optim
 from pynet.vision import Draw
 import pickle
 import pynet.nn.im2row as im2row
+import pynet.nn.utils as util
 
 
 def get_random_float_np_array(total, size, scale):
@@ -37,6 +38,9 @@ def my_train():
     plt.multi_plot((solver.train_acc_history, solver.val_acc_history), ('train', 'val'),
                    title='准确率', xlabel='迭代/次', ylabel='准确率', save_path='acc.png')
     print('best_train_acc: %f; best_val_acc: %f' % (solver.best_train_acc, solver.best_val_acc))
+    with open('acc.txt', 'w') as f:
+        for i in range(len(solver.train_acc_history)):
+            f.write(f'epoch: {i + 1}, train acc: {solver.train_acc_history[i]:.10}, val_acc: {solver.val_acc_history[i]:.10}\n')
 
 
 def my_test():
@@ -56,7 +60,7 @@ def test():
     print('w\n', w)
     print('b\n', b)
 
-    out, cache = conv1.forward(input_, w, b)
+    out, cache = conv1.forward(input_, (w, b))
     print('out\n', out)
 
     grad_out = get_random_float_np_array(9, [1, 1, 3, 3], [-3, 3])
@@ -71,15 +75,25 @@ def test_speed(batch):
     alex_net = models.MyAlexNet()
     inputs = get_random_float_np_array(batch * 3 * 32 * 32, [batch, 3, 32, 32], [0., 1.])
     grad_out = get_random_float_np_array(batch * 10, [batch, 10], [-0.5, 0.5])
+    optimizer = optim.SGD(alex_net.params, lr=0.1, momentum=0.9, nesterov=True)
 
     t1 = time.perf_counter()
     for _ in range(1):
         alex_net(inputs)
-        alex_net.backward(grad_out)
+        grad = alex_net.backward(grad_out)
+        for k in grad.keys():
+            print(k, grad[k].shape)
+        optimizer.step(grad)
     t2 = time.perf_counter()
     print(t2 - t1)
 
 
 if __name__ == '__main__':
-    my_test()
+    # data = np.array([random.uniform(-1, 1) for _ in range(4)]).reshape(2, 2)
+    # print(data)
+    # print(util.cut_data(data, 0.7))
+
+    test_speed(100)
+
+    # my_test()
     # test acc: 0.8162

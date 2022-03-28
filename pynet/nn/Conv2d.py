@@ -2,7 +2,7 @@
 
 # @Time    : 19-7-2 上午9:53
 # @Author  : zj
-
+import random
 
 from .utils import *
 from .im2row import *
@@ -19,7 +19,7 @@ class Conv2d:
     """
 
     def __init__(self, in_c, filter_h, filter_w, filter_num, stride=1, padding=0, weight_scale=1e-2, weight_loc=0.,
-                 bias_value=0.):
+                 bias_value=0., percent=0.9):
         """
         :param in_c: 输入数据体通道数
         :param filter_h: 滤波器长
@@ -39,11 +39,14 @@ class Conv2d:
         self.weight_scale = weight_scale
         self.weight_loc = weight_loc
         self.bias_value = bias_value
+        self.percent = percent
 
-    def __call__(self, inputs, w, b):
-        return self.forward(inputs, w, b)
+    def __call__(self, inputs, params, other):
+        return self.forward(inputs, params)
 
-    def forward(self, inputs, w, b):
+    def forward(self, inputs, params):
+        w, b = params
+
         # input.shape == [N, C, H, W]
         assert len(inputs.shape) == 4
         N, C, H, W = inputs.shape[:4]
@@ -67,8 +70,9 @@ class Conv2d:
         grad_b = np.sum(dz, axis=0, keepdims=True) / dz.shape[0]
 
         da = dz.dot(w.T)
-        return grad_W, grad_b, row2im_indices(da, input_shape, field_height=self.filter_h,
-                                              field_width=self.filter_w, stride=self.stride, padding=self.padding)
+        grad_in = row2im_indices(da, input_shape, field_height=self.filter_h,
+                                 field_width=self.filter_w, stride=self.stride, padding=self.padding)
+        return grad_in, grad_W, grad_b
 
     def get_params(self):
         return np.random.normal(loc=self.weight_loc, scale=self.weight_scale, size=(

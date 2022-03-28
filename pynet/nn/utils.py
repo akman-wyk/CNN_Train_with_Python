@@ -2,6 +2,9 @@
 
 # @Time    : 19-5-27 上午11:16
 # @Author  : zj
+from scipy.stats import norm
+from my_import import np
+import random
 
 
 def conv_fc2output(inputs, batch_size, out_height, out_width):

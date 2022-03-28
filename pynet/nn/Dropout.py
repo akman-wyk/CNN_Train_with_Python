@@ -8,8 +8,8 @@ from my_import import np
 
 class Dropout(object):
 
-    def __call__(self, inputs, dropout_param):
-        return self.forward(inputs, dropout_param)
+    def __call__(self, inputs, params, other):
+        return self.forward(inputs, other)
 
     def forward(self, inputs, dropout_param):
         p, mode = dropout_param['p'], dropout_param['mode']
