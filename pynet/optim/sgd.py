@@ -55,3 +55,14 @@ class SGD(Optimizer):
             next_w = w - config['lr'] * dw
 
         return next_w, config
+
+    def get_lr(self):
+        s = set()
+        for k in self.optim_configs.keys():
+            s.add(self.optim_configs[k]['lr'])
+        return s
+
+    def set_lr(self, lr):
+        for k in self.optim_configs.keys():
+            self.optim_configs[k]['lr'] = lr
+

@@ -9,3 +9,4 @@ from .MaxPool import MaxPool
 from .GAP import GAP
 from .BN import BN
 from .Flat import Flat
+from .Prune import Prune

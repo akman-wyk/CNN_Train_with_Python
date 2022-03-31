@@ -103,6 +103,8 @@ class Solver(object):
 
         for i in range(self.num_epochs):
             self.current_epoch = i + 1
+            if self.current_epoch == 60:
+                self.optimizer.set_lr(0.001)
             start = time.time()
             total_loss = 0.
             self.model.train()
@@ -115,7 +117,7 @@ class Solver(object):
                 loss = self._step(X_batch, y_batch)
                 if not np.isnan(loss):
                     total_loss += loss
-                print(loss, end='  ')
+                # print(loss, end='  ')
             end = time.time()
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
@@ -123,7 +125,7 @@ class Solver(object):
             if self.current_epoch % self.print_every == 0:
                 avg_loss = total_loss / iterations_per_epoch
                 self.loss_history.append(float('%.6f' % avg_loss))
-                print(f'epoch: {self.current_epoch} time: {end - start:.2} loss: {avg_loss:.10}')
+                print(f'epoch: {self.current_epoch}, lr: {self.optimizer.get_lr()} time: {end - start} loss: {avg_loss:.10}')
 
                 self.model.eval()
                 train_acc = self.check_accuracy(self.X_train, self.y_train, batch_size=self.batch_size)

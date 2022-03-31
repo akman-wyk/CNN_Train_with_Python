@@ -12,13 +12,18 @@ model_urls = {
 
 class MyAlexNet(Net):
     def __init__(self, dropout=0.5, weight_scale=0.01, cut_percent=0.9, cut_weight=False, cut_weight_mode='same',
-                 cut_loss=False):
+                 cut_grad=False):
         super(MyAlexNet, self).__init__()
-        self.conv1 = nn.Conv2d(3, 3, 3, 96, padding=1, weight_scale=weight_scale)
-        self.conv2 = nn.Conv2d(96, 3, 3, 256, padding=1, weight_scale=weight_scale)
-        self.conv3 = nn.Conv2d(256, 3, 3, 384, padding=1, weight_scale=weight_scale)
-        self.conv4 = nn.Conv2d(384, 3, 3, 384, padding=1, weight_scale=weight_scale)
-        self.conv5 = nn.Conv2d(384, 3, 3, 256, padding=1, weight_scale=weight_scale)
+        self.conv1 = nn.Conv2d(3, 3, 3, 96, padding=1, weight_scale=weight_scale, cut_weight=cut_weight,
+                               cut_percent=cut_percent, cut_weight_mode=cut_weight_mode)
+        self.conv2 = nn.Conv2d(96, 3, 3, 256, padding=1, weight_scale=weight_scale, cut_weight=cut_weight,
+                               cut_percent=cut_percent, cut_weight_mode=cut_weight_mode)
+        self.conv3 = nn.Conv2d(256, 3, 3, 384, padding=1, weight_scale=weight_scale, cut_weight=cut_weight,
+                               cut_percent=cut_percent, cut_weight_mode=cut_weight_mode)
+        self.conv4 = nn.Conv2d(384, 3, 3, 384, padding=1, weight_scale=weight_scale, cut_weight=cut_weight,
+                               cut_percent=cut_percent, cut_weight_mode=cut_weight_mode)
+        self.conv5 = nn.Conv2d(384, 3, 3, 256, padding=1, weight_scale=weight_scale, cut_weight=cut_weight,
+                               cut_percent=cut_percent, cut_weight_mode=cut_weight_mode)
 
         self.maxPool1 = nn.MaxPool(2, 2, 96, stride=2)
         self.maxPool2 = nn.MaxPool(2, 2, 256, stride=2)
@@ -32,6 +37,7 @@ class MyAlexNet(Net):
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout()
         self.bn = nn.BN()
+        self.prune = nn.Prune(cut_grad=cut_grad, cut_percent=cut_percent)
 
         self.other_params = {'dropout_param': {'mode': 'train', 'p': dropout},
                              'bn1': {'mode': 'train'},
@@ -40,28 +46,37 @@ class MyAlexNet(Net):
         self.params = self._get_params()
 
         self.layers = []
-        self._add_layers([(self.conv1, ('W1', 'b1'), None),
+        self._add_layers([(self.prune, None, None),
+                          (self.conv1, ('W1', 'b1'), None),
                           (self.relu, None, None),
                           (self.maxPool1, None, None),
+                          (self.prune, None, None),
                           (self.conv2, ('W2', 'b2'), None),
                           (self.relu, None, None),
                           (self.maxPool2, None, None),
+                          (self.prune, None, None),
                           (self.conv3, ('W3', 'b3'), None),
                           (self.relu, None, None),
+                          (self.prune, None, None),
                           (self.conv4, ('W4', 'b4'), None),
                           (self.relu, None, None),
+                          (self.prune, None, None),
                           (self.conv5, ('W5', 'b5'), None),
                           (self.relu, None, None),
                           (self.maxPool3, None, None),
+                          (self.prune, None, None),
                           (self.flat, None, None),
                           (self.dropout, None, 'dropout_param'),
                           (self.fc1, ('W6', 'b6'), None),
+                          (self.prune, None, None),
                           (self.bn, ('gamma1', 'beta1'), 'bn1'),
                           (self.relu, None, None),
                           (self.dropout, None, 'dropout_param'),
                           (self.fc2, ('W7', 'b7'), None),
+                          (self.prune, None, None),
                           (self.bn, ('gamma2', 'beta2'), 'bn2'),
                           (self.relu, None, None),
+                          (self.prune, None, None),
                           (self.fc3, ('W8', 'b8'), None)
                           ])
 
@@ -78,7 +93,7 @@ class MyAlexNet(Net):
             # print(layer['grad_keys'])
             params = None
             if layer['params_key'] is not None:
-                params = tuple([self.params[k] for k in layer['params_key']])
+                params = [self.params[k] for k in layer['params_key']]
 
             other = None
             if layer['other_key'] is not None:
@@ -134,9 +149,19 @@ class MyAlexNet(Net):
             })
 
     def train(self):
+        self.conv1.train()
+        self.conv2.train()
+        self.conv3.train()
+        self.conv4.train()
+        self.conv5.train()
         for v in self.other_params.values():
             v['mode'] = 'train'
 
     def eval(self):
+        self.conv1.eval()
+        self.conv2.eval()
+        self.conv3.eval()
+        self.conv4.eval()
+        self.conv5.eval()
         for v in self.other_params.values():
             v['mode'] = 'test'

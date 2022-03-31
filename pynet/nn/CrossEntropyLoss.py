@@ -6,7 +6,7 @@
 
 from .pool2row import *
 
-__all__ = ['Conv2d']
+__all__ = ['CrossEntropyLoss']
 
 
 class CrossEntropyLoss(object):

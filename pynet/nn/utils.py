@@ -38,3 +38,21 @@ def pool_fc2output(inputs, batch_size, out_height, out_width):
 
 def pool_output2fc(inputs):
     return inputs.copy().reshape(-1)
+
+
+def cut_data(data, percent, rand_data=None):
+    abs_ = abs(data)
+    mean_ = abs_.mean()
+    threshold = norm.ppf(1 / 2 + percent / 2) * 1.25 * mean_
+
+    if rand_data is None:
+        rand_data = np.random.rand(*data.shape)
+
+    com_data = abs_ / threshold
+    reserve_data = (com_data > 1) * data
+    random_big = (com_data > rand_data) * (com_data <= 1)
+    random_big_data = random_big * (data > 0) * threshold + random_big * (data < 0) * (-threshold)
+    new_data = reserve_data + random_big_data
+
+    return new_data
+
