@@ -36,7 +36,8 @@ class MyAlexNet(Net):
         self.flat = nn.Flat((256, 4, 4), 4096)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout()
-        self.bn = nn.BN()
+        self.bn1 = nn.BN()
+        self.bn2 = nn.BN()
         self.prune = nn.Prune(cut_grad=cut_grad, cut_percent=cut_percent)
 
         self.other_params = {'dropout_param': {'mode': 'train', 'p': dropout},
@@ -69,12 +70,12 @@ class MyAlexNet(Net):
                           (self.dropout, None, 'dropout_param'),
                           (self.fc1, ('W6', 'b6'), None),
                           (self.prune, None, None),
-                          (self.bn, ('gamma1', 'beta1'), 'bn1'),
+                          (self.bn1, ('gamma1', 'beta1'), 'bn1'),
                           (self.relu, None, None),
                           (self.dropout, None, 'dropout_param'),
                           (self.fc2, ('W7', 'b7'), None),
                           (self.prune, None, None),
-                          (self.bn, ('gamma2', 'beta2'), 'bn2'),
+                          (self.bn2, ('gamma2', 'beta2'), 'bn2'),
                           (self.relu, None, None),
                           (self.prune, None, None),
                           (self.fc3, ('W8', 'b8'), None)
