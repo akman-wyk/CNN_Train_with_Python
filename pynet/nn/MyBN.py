@@ -1,34 +1,20 @@
-# -*- coding: utf-8 -*-
-
-# @Time    : 19-7-4 下午2:45
-# @Author  : zj
-
 from my_import import np
 
-__all__ = ['BN']
+__all__ = ['MyBN']
 
 
-
-class BN:
-    """
-    batch normalization layer
-    批量归一化层
-    """
+class MyBN:
     def __call__(self, inputs, params, other):
-        return self.forward(inputs, params, other)
+        return self.forward(inputs, other)
 
-    def forward(self, inputs, params, other):
-        gamma, beta = params
+    def forward(self, inputs, other):
         bn_param = other
-
-        # inputs.shape == [N, C]
-        assert len(inputs.shape) == 2
 
         mode = bn_param['mode']
         eps = bn_param.get('eps', 1e-5)
         momentum = bn_param.get('momentum', 0.9)
 
-        N, D = inputs.shape
+        D = inputs.shape[1:]
         running_mean = bn_param.get('running_mean', np.zeros(D, dtype=inputs.dtype))
         running_var = bn_param.get('running_var', np.zeros(D, dtype=inputs.dtype))
 
@@ -38,15 +24,15 @@ class BN:
             sample_var = np.var(inputs, axis=0, keepdims=True)
             x_norm = (inputs - sample_mean) / np.sqrt(sample_var + eps)
 
-            out = x_norm * gamma + beta
-            cache = (sample_mean, sample_var, x_norm, gamma, eps, inputs)
+            out = x_norm
+            cache = (sample_mean, sample_var, x_norm, eps, inputs)
 
             running_mean = momentum * running_mean + (1 - momentum) * sample_mean
             running_var = momentum * running_var + (1 - momentum) * sample_var
 
         elif mode == 'test':
             stds = np.sqrt(running_var + eps)
-            out = gamma / stds * inputs + (beta - gamma * running_mean / stds)
+            out = (inputs - running_mean) / stds
         else:
             raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
 
@@ -57,12 +43,10 @@ class BN:
         return out, cache
 
     def backward(self, grad_out, cache):
-        sample_mean, sample_var, x_norm, gamma, eps, x = cache
+        sample_mean, sample_var, x_norm, eps, x = cache
         m = x.shape[0]
 
-        dgamma = np.sum(grad_out * x_norm, axis=0)
-        dbeta = np.sum(grad_out, axis=0)
-        dnorm = grad_out * gamma
+        dnorm = grad_out
 
         dvar = dnorm * (x - sample_mean) * (-0.5) * (sample_var + eps) ** (-1.5)
         dvar = np.sum(dvar, axis=0, keepdims=True)
@@ -71,7 +55,4 @@ class BN:
 
         dx = dnorm / np.sqrt(sample_var + eps) + dvar * 2 * (x - sample_mean) / m + dmean / m
 
-        return dx, dgamma, dbeta
-
-    def get_params(self, size):
-        return np.ones(size), np.zeros(size)
+        return dx

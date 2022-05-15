@@ -135,8 +135,8 @@ class MyAlexNet(Net):
         params['W7'], params['b7'] = self.fc2.get_params()
         params['W8'], params['b8'] = self.fc3.get_params()
 
-        params['gamma1'], params['beta1'] = self.bn.get_params(2048)
-        params['gamma2'], params['beta2'] = self.bn.get_params(2048)
+        params['gamma1'], params['beta1'] = self.bn1.get_params(2048)
+        params['gamma2'], params['beta2'] = self.bn2.get_params(2048)
 
         return params
 

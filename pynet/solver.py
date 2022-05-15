@@ -115,7 +115,7 @@ class Solver(object):
                 y_batch = self.y_train[idx_start:idx_end]
 
                 loss = self._step(X_batch, y_batch)
-                if not np.isnan(loss):
+                if not np.isnan(loss) and not np.isinf(loss):
                     total_loss += loss
                 # print(loss, end='  ')
             end = time.time()

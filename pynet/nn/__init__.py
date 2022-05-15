@@ -10,3 +10,5 @@ from .GAP import GAP
 from .BN import BN
 from .Flat import Flat
 from .Prune import Prune
+from .Simple import Simple
+from .MyBN import MyBN
